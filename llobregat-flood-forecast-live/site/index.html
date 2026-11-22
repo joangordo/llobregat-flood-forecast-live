@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Llobregat flood forecast</title>
+  <meta name="description" content="Experimental flood forecast for the Llobregat River at Sant Joan Despí, updated every 30 minutes.">
+  <meta property="og:title" content="Llobregat flood forecast, live">
+  <meta property="og:description" content="Experimental flood forecast for the Llobregat River at Sant Joan Despí, 1–24 h ahead, updated every 30 minutes.">
+  <meta property="og:image" content="https://joangordo.github.io/llobregat-flood-forecast-live/social.png">
+  <meta property="og:url" content="https://joangordo.github.io/llobregat-flood-forecast-live/">
+  <meta name="twitter:card" content="summary_large_image">
+  <link rel="stylesheet" href="style.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><path d='M2 20c4-4 8 4 12 0s8 4 12 0 4 0 4 0v10H2z' fill='%232a78d6'/></svg>">
+</head>
+<body>
+  <header class="top">
+    <div class="wrap top-row">
+      <div>
+        <h1 data-i18n="title">Llobregat at Sant Joan Despí</h1>
+        <p class="sub" data-i18n="subtitle">Experimental flood forecast, updated every 30 minutes</p>
+      </div>
+      <div class="lang" role="group" aria-label="Language">
+        <button type="button" data-lang="en">EN</button>
+        <button type="button" data-lang="ca">CA</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <p class="notice" data-i18n="disclaimer">Research project, not an official warning system. Official information: Agència Catalana de l'Aigua and Protecció Civil de Catalunya.</p>
+
+    <section class="cards" aria-live="polite">
+      <div class="card status" id="status-card">
+        <div class="label" data-i18n="level">Forecast warning level</div>
+        <div class="level" id="level"><span class="dot"></span><span id="level-text">…</span></div>
+        <div class="small" id="level-help"></div>
+      </div>
+      <div class="card">
+        <div class="label" data-i18n="flow_now">Flow now</div>
+        <div class="big" id="q-now">…</div>
+        <div class="small" id="issue"></div>
+      </div>
+      <div class="card">
+        <div class="label" data-i18n="threshold">Warning threshold</div>
+        <div class="big" id="threshold">…</div>
+        <div class="small" data-i18n="threshold_help">99th percentile of the training flows: a high flow, not necessarily a flood</div>
+      </div>
+    </section>
+
+    <div id="messages"></div>
+
+    <section class="panel">
+      <h2 data-i18n="chart_title">Observed flow and forecast</h2>
+      <div class="legend" id="legend"></div>
+      <div class="chart-box"><canvas id="chart" role="img" aria-label="Hydrograph"></canvas></div>
+      <p class="small" data-i18n="chart_help">Shaded bands: 80 % and 90 % prediction intervals. Dashed line: warning threshold.</p>
+    </section>
+
+    <section class="panel">
+      <h2 data-i18n="table_title">Forecast by lead time</h2>
+      <div class="table-scroll">
+        <table id="fc-table">
+          <thead><tr>
+            <th data-i18n="col_h">Lead time</th><th data-i18n="col_time">Time</th>
+            <th data-i18n="col_central">Forecast (m³/s)</th><th data-i18n="col_80">80 % interval</th>
+            <th data-i18n="col_90">90 % interval</th><th data-i18n="col_state">Warning</th>
+          </tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="panel">
+      <details>
+        <summary data-i18n="inputs_title">Input data (ACA real-time network)</summary>
+        <div class="table-scroll">
+          <table id="in-table">
+            <thead><tr>
+              <th data-i18n="col_input">Input</th><th data-i18n="col_last">Last reading</th>
+              <th data-i18n="col_age">Age</th><th data-i18n="col_value">Value</th><th data-i18n="col_check">Check</th>
+            </tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </details>
+    </section>
+
+    <section class="panel prose">
+      <h2 data-i18n="how_title">How to read it</h2>
+      <p data-i18n="how_1">The forecast combines a LightGBM model and a linear model trained on 25 years of ACA data (river gauges upstream, reservoirs and rain gauges). It uses only rain that has already fallen, so floods caused by rain in the lower basin can only be anticipated a few hours ahead.</p>
+      <p data-i18n="how_2"><b>Pre-alert</b>: the upper bound of the 90 % interval exceeds the threshold. <b>Alert</b>: the forecast itself exceeds it. In 2025–2026, the pre-alert came before the flow crossed the threshold in 29 of 32 episodes (a median of 3.5 h earlier), and the alert in 21 (2 h earlier). Beyond a few hours the forecast peaks tend to be too low.</p>
+      <p data-i18n="how_3">Model, validation and limitations: see the project repository.</p>
+    </section>
+  </main>
+
+  <footer class="wrap foot">
+    <span data-i18n="data_source">Data: Agència Catalana de l'Aigua (open data, real-time network).</span>
+    <a href="https://github.com/joangordo/llobregat-flood-forecasting">Model (EN)</a> ·
+    <a href="https://github.com/joangordo/llobregat-prediccio-crescudes">Model (CA)</a> ·
+    <a href="https://github.com/joangordo/llobregat-flood-forecast-live">App</a>
+    <div class="small" id="model-info"></div>
+  </footer>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
