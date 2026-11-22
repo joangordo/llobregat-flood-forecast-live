@@ -1,0 +1,78 @@
+# Live forecast every 30 minutes, published on GitHub Pages.
+#
+# Triggers: GitHub's own schedule (best effort, often delayed) and an external scheduler
+# (cron-job.org) that calls the workflow_dispatch API with a fine-grained token limited to
+# this repository (Actions: read and write).
+#
+# State between runs lives in the `data` branch (rolling cache of raw readings and the
+# archive of issued forecasts). It is rewritten as a single commit on every run (amend +
+# force push), so its history does not grow.
+#
+# Before enabling it:
+#   1. Put the operational model in model/ (llobregat operational-model, see model/README.md)
+#   2. Settings → Pages → Source: GitHub Actions
+
+name: Forecast
+
+on:
+  schedule:
+    - cron: "4,34 * * * *"
+  workflow_dispatch:
+
+concurrency:
+  group: forecast
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+jobs:
+  forecast:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+      - name: Install
+        run: uv sync --no-dev
+
+      - name: Restore the data branch
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          if git ls-remote --exit-code --heads origin data >/dev/null; then
+            git fetch --depth 1 origin data
+            git worktree add store FETCH_HEAD
+            git -C store switch -c data
+          else
+            git worktree add --orphan -b data store
+          fi
+
+      - name: Forecast
+        run: uv run python -m app.run --store store --site site
+
+      - name: Save the data branch
+        run: |
+          cd store
+          git add -A
+          if git diff --cached --quiet; then echo "No changes"; exit 0; fi
+          msg="data: $(date -u +%Y-%m-%dT%H:%MZ)"
+          if git rev-parse --verify -q HEAD >/dev/null; then
+            git commit -q --amend -m "$msg"
+          else
+            git commit -q -m "$msg"
+          fi
+          git push -q --force origin data
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+      - id: deploy
+        uses: actions/deploy-pages@v4
