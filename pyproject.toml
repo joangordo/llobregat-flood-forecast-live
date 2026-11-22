@@ -1,5 +1,5 @@
 [project]
-name = "llobregat-operatiu"
+name = "llobregat-flood-forecast-live"
 version = "1.0.0"
 description = "Live flood forecast for the Llobregat River at Sant Joan Despí, every 30 minutes"
 readme = "README.md"

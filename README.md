@@ -3,7 +3,7 @@
 *[Català a sota](#català)*
 
 Live, experimental flood forecast for the Llobregat River at Sant Joan Despí, updated every
-30 minutes and published at **https://joangordo.github.io/llobregat-operatiu/**.
+30 minutes and published at **https://joangordo.github.io/llobregat-flood-forecast-live/**.
 
 > **Not an official warning system.** For official information, see the
 > [Agència Catalana de l'Aigua](https://aca.gencat.cat) and
@@ -42,21 +42,23 @@ site/                 static page (index.html, app.js, style.css); data/latest.j
    `model/manifest.json`.
 2. Settings → Pages → Source: **GitHub Actions**.
 3. Optional, for punctual runs: an external scheduler (e.g. cron-job.org) calling
-   `POST /repos/joangordo/llobregat-operatiu/actions/workflows/forecast.yml/dispatches`
+   `POST /repos/joangordo/llobregat-flood-forecast-live/actions/workflows/forecast.yml/dispatches`
    with `{"ref": "main"}` and a fine-grained token limited to this repository
    (Actions: read and write).
 
 Run it locally: `uv sync && uv run python -m app.run`, then open `site/index.html` through a
 local server (`python -m http.server -d site`).
 
-Data: Agència Catalana de l'Aigua (open data). Code: MIT.
+Data: Agència Catalana de l'Aigua (open data). The data are not stored in this repository
+(except the rolling 60-day cache and the forecast archive in the `data` branch) and remain
+subject to the ACA's terms of use. Code: MIT.
 
 ---
 
 ## Català
 
 Predicció experimental de crescudes del Llobregat a Sant Joan Despí en temps real, cada 30
-minuts, publicada a **https://joangordo.github.io/llobregat-operatiu/**.
+minuts, publicada a **https://joangordo.github.io/llobregat-flood-forecast-live/**.
 
 > **No és un sistema oficial d'avís.** La informació oficial la donen l'Agència Catalana de
 > l'Aigua i Protecció Civil de Catalunya.
@@ -80,4 +82,7 @@ La pàgina té versió en català i en anglès (botons CA / EN).
 Posada en marxa: copiar el model operatiu a `model/` i triar **GitHub Actions** com a font
 de Pages.
 
-Dades: Agència Catalana de l'Aigua (dades obertes). Codi: MIT.
+Dades: Agència Catalana de l'Aigua (dades obertes). Les dades no es desen en aquest repositori
+(llevat de la memòria de 60 dies i l'arxiu de prediccions de la branca `data`) i es
+regeixen per les condicions d'ús de l'ACA.
+Codi: MIT.
