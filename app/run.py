@@ -52,6 +52,23 @@ def warning_level(latest: pd.DataFrame) -> str:
     return "normal"
 
 
+def coherent_intervals(fc: pd.DataFrame) -> pd.DataFrame:
+    """Widen the intervals so that they always contain the point forecast.
+
+    The point forecast is the mean of LightGBM and Ridge, but the intervals come from the
+    LightGBM quantile models. When Ridge disagrees with LightGBM (mostly at +12 and +24 h)
+    the mean can fall outside the band. Widening can only raise the coverage measured in
+    the evaluation, and it makes the pre-alert fire whenever the alert does. The archive
+    keeps the raw model output.
+    """
+    fc = fc.copy()
+    for lev in (80, 90):
+        fc[f"lo{lev}"] = fc[[f"lo{lev}", "central"]].min(axis=1)
+        fc[f"hi{lev}"] = fc[[f"hi{lev}", "central"]].max(axis=1)
+    fc["pre_alert"] = fc["pre_alert"] | fc["alert"]
+    return fc
+
+
 def build_payload(
     cfg, manifest: dict, fc: pd.DataFrame, table: pd.DataFrame, status: pd.DataFrame, now
 ) -> dict:
@@ -81,6 +98,7 @@ def build_payload(
     if fc.empty:
         payload["messages"].append("no_target")
         return payload
+    fc = coherent_intervals(fc)
     issue = fc["issue_time"].max()
     latest = fc[fc["issue_time"] == issue].sort_values("horizon_h")
     payload["issue_time"] = _iso(issue)

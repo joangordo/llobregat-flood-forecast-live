@@ -95,3 +95,20 @@ def test_no_target_data_means_no_forecast(tmp_path, monkeypatch):
     )
     assert payload["level"] == "unknown" and payload["messages"] == ["no_target"]
     assert payload["forecast"] == []
+
+
+def test_intervals_always_contain_the_point_forecast():
+    fc = pd.DataFrame(
+        {
+            "central": [10.5, 9.8],
+            "lo80": [8.1, 9.5],
+            "hi80": [10.3, 10.2],
+            "lo90": [8.2, 9.4],
+            "hi90": [10.6, 10.4],
+            "alert": [False, False],
+            "pre_alert": [False, False],
+        }
+    )
+    out = app_run.coherent_intervals(fc)
+    assert (out["lo80"] <= out["central"]).all() and (out["central"] <= out["hi80"]).all()
+    assert out.loc[0, "hi80"] == 10.5 and out.loc[1, "hi80"] == 10.2  # widened only if needed
