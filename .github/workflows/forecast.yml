@@ -37,9 +37,11 @@ jobs:
       url: ${{ steps.deploy.outputs.page_url }}
     steps:
       - uses: actions/checkout@v4
+
       - uses: astral-sh/setup-uv@v5
         with:
-          enable-cache: true
+          enable-cache: false # Evita el warning si no hi ha uv.lock/requirements.txt a l'arrel
+
       - name: Install
         run: uv sync --no-dev
 
@@ -71,8 +73,14 @@ jobs:
           fi
           git push -q --force origin data
 
-      - uses: actions/upload-pages-artifact@v3
+      # Actualitzat de @v3 a @v4 perquè coincideixi amb el sistema d'artefactes de deploy-pages@v4
+      - uses: actions/upload-pages-artifact@v4
         with:
           path: site
+
+      # Pausa breu per assegurar que l'API d'artefactes de GitHub ha indexat la pujada
+      - name: Wait for artifact propagation
+        run: sleep 5
+
       - id: deploy
         uses: actions/deploy-pages@v4
