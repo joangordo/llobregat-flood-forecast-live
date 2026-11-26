@@ -176,17 +176,28 @@ function drawChart() {
       },
     },
     scales: {
-      x: {
+     x: {
         type: "linear",
         grid: { color: css("--line") },
         afterBuildTicks: (axis) => {
-          // Ticks on whole hours, every 6 or 12 h depending on the width
-          const step = (axis.width < 500 ? 12 : 6) * 3600e3;
+          const hours = axis.width < 520 ? 24 : axis.width < 850 ? 12 : 6;
+          const step = hours * 3600e3;
           const ticks = [];
           for (let v = Math.ceil(axis.min / step) * step; v <= axis.max; v += step) ticks.push({ value: v });
           axis.ticks = ticks;
         },
-        ticks: { color: css("--ink-2"), autoSkip: false, maxRotation: 0, callback: (v) => time(new Date(v).toISOString()) },
+        ticks: {
+          color: css("--ink-2"),
+          autoSkip: false,
+          maxRotation: 0,
+          callback: (v) => {
+            const d = new Date(v);
+            const loc = lang === "ca" ? "ca-ES" : "en-GB";
+            const day = d.toLocaleDateString(loc, { weekday: "short", timeZone: "Europe/Madrid" });
+            const hour = d.toLocaleTimeString(loc, { hour: "2-digit", minute: "2-digit", timeZone: "Europe/Madrid" });
+            return [day, hour]; // Chart.js dibuixa els arrays com a dues línies
+          },
+        },
       },
       y: {
         beginAtZero: true, grid: { color: css("--line") }, ticks: { color: css("--ink-2") },
